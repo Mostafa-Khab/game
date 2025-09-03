@@ -15,9 +15,9 @@ extern "C" {
 class mesh {
   public:
     bool create(std::vector<float>& vbo_data, std::vector<unsigned int>& ebo_data, unsigned int usg);
-    bool add_texture(Image img, unsigned int min_filter, unsigned int mag_filter);
+    bool add_texture(Image img, unsigned int wrap_filter, unsigned int minmag_filter);
 
-    virtual void setup(); //setup attributes for vertex
+    virtual void setup(){}; //setup attributes for vertex
 
     void draw(unsigned int mode, unsigned int shader_program);
 
@@ -26,7 +26,7 @@ class mesh {
     long vbo_count, ebo_count = 0;
 
     //textures[i] have texture unit i
-    std::vector<unsigned int> textures = 0;
+    std::vector<unsigned int> textures;
 
 };
 

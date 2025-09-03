@@ -29,12 +29,20 @@ bool mesh::create(std::vector<float>& vbo_data, std::vector<unsigned int>& ebo_d
   //
   vbo_count = vbo_data.size();
   ebo_count = ebo_data.size();
+
+  return true;
 }
 
 bool mesh::add_texture(Image img, unsigned int wrap_filter, unsigned int minmag_filter){
   unsigned int texture;
   glCreateTextures(GL_TEXTURE_2D, 1, &texture);
   glBindTextureUnit(0, texture);
+
+  if(!texture)
+  {
+    std::cerr << "MESH ERROR: failed to add texture\n"; 
+    return false;
+  }
 
   glTextureParameteri(texture, GL_TEXTURE_WRAP_S, wrap_filter );
   glTextureParameteri(texture, GL_TEXTURE_WRAP_T, wrap_filter );
@@ -45,6 +53,7 @@ bool mesh::add_texture(Image img, unsigned int wrap_filter, unsigned int minmag_
   glTextureSubImage2D(texture, 0, 0, 0, img.w, img.h, GL_RGBA, GL_UNSIGNED_BYTE, img.data);
 
   textures.push_back(texture);
+  return true;
 }
 
 void mesh::draw(unsigned int mode, unsigned int shader_program){
@@ -60,6 +69,8 @@ void mesh::draw(unsigned int mode, unsigned int shader_program){
     }
     
   }
+
+  glBindVertexArray(vao);
 
   if(ebo) {
     glDrawElements(mode, ebo_count, GL_UNSIGNED_INT, NULL);
