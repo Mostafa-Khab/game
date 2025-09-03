@@ -1,0 +1,70 @@
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
+#include <glad/gl.h>
+
+#include <iostream>
+#include <vector>
+
+#include "mesh.hpp"
+
+bool mesh::create(std::vector<float>& vbo_data, std::vector<unsigned int>& ebo_data, unsigned int usg){
+  if(vbo_data.empty()) {
+    std::cerr << "MESH ERROR: " << "vbo must have data to create a mesh\n";
+    return false;
+  }
+
+  glCreateVertexArrays(1, &vao);
+
+  glCreateBuffers(1, &vbo);
+  glNamedBufferData(vbo, vbo_data.size() * sizeof(float), vbo_data.data(), usg);
+
+  if(!ebo_data.empty())
+  {
+    glCreateBuffers(1, &ebo);
+    glNamedBufferData(ebo, ebo_data.size() * sizeof(unsigned int), ebo_data.data(), usg);
+    glVertexArrayElementBuffer(vao, ebo);
+  }
+
+  //glVertexArrayVertexBuffer(vao, 0, vbo, 0, stride) //should be in setup function
+  //
+  vbo_count = vbo_data.size();
+  ebo_count = ebo_data.size();
+}
+
+bool mesh::add_texture(Image img, unsigned int wrap_filter, unsigned int minmag_filter){
+  unsigned int texture;
+  glCreateTextures(GL_TEXTURE_2D, 1, &texture);
+  glBindTextureUnit(0, texture);
+
+  glTextureParameteri(texture, GL_TEXTURE_WRAP_S, wrap_filter );
+  glTextureParameteri(texture, GL_TEXTURE_WRAP_T, wrap_filter );
+  glTextureParameteri(texture, GL_TEXTURE_MIN_FILTER, minmag_filter);
+  glTextureParameteri(texture, GL_TEXTURE_MAG_FILTER, minmag_filter);
+
+  glTextureStorage2D(texture, 1, GL_RGBA8, img.w, img.h);
+  glTextureSubImage2D(texture, 0, 0, 0, img.w, img.h, GL_RGBA, GL_UNSIGNED_BYTE, img.data);
+
+  textures.push_back(texture);
+}
+
+void mesh::draw(unsigned int mode, unsigned int shader_program){
+  glUseProgram(shader_program);
+
+  if(!textures.empty()) {
+    for(int i = 0; i < textures.size(); ++i) {
+      glBindTextureUnit(i, textures[i]);
+    }
+
+    for(int i = 0; i < textures.size(); ++i) {
+      glUniform1i( glGetUniformLocation(shader_program, ("u_tex" + std::to_string(i)).c_str()), i);
+    }
+    
+  }
+
+  if(ebo) {
+    glDrawElements(mode, ebo_count, GL_UNSIGNED_INT, NULL);
+  } else {
+    glDrawArrays(mode, 0, vbo_count);
+  }
+
+}
