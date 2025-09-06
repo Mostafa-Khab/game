@@ -33,9 +33,9 @@ bool game::init(int w, int h, bool fullscreen, bool debug, bool vsync_enable)
   if(fullscreen) {
     width  = mode->width;
     height  = mode->height;
-    window = glfwCreateWindow(w, h, "gfx-game", glfwGetPrimaryMonitor(), NULL);
+    window = glfwCreateWindow(width, height, "gfx-game", glfwGetPrimaryMonitor(), NULL);
   } else {
-    window = glfwCreateWindow(w, h, "gfx-game", NULL, NULL);
+    window = glfwCreateWindow(width, height, "gfx-game", NULL, NULL);
   }
   
   if(!window)
@@ -73,9 +73,9 @@ bool game::onSetup()
   return setup();
 }
 
-void game::onUpdate(){
+void game::onUpdate(float dt){
   glfwPollEvents();
-  update();
+  update(dt);
 }
 
 void game::onRender(){
@@ -95,11 +95,16 @@ void game::run(){
   if(!onSetup())
     error("game setup failed, unexpected behavior may occur");
 
+  float current = glfwGetTime();
   while(!glfwWindowShouldClose(window))
   {
-    onUpdate();
+    float dt = glfwGetTime() - current;
+    current = glfwGetTime();
+    onUpdate(dt);
     onRender();
   }
+
+  onShutDown();
 }
 
 void message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, GLchar const* message, void const* user_param)

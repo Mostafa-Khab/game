@@ -1,3 +1,4 @@
+#include <filesystem>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 #include <glad/gl.h>
@@ -6,6 +7,7 @@
 #include <vector>
 
 #include "mesh.hpp"
+#include "texture.hpp"
 
 bool mesh::create(std::vector<float>& vbo_data, std::vector<unsigned int>& ebo_data, unsigned int usg){
   if(vbo_data.empty()) {
@@ -33,7 +35,7 @@ bool mesh::create(std::vector<float>& vbo_data, std::vector<unsigned int>& ebo_d
   return true;
 }
 
-bool mesh::add_texture(Image img, unsigned int wrap_filter, unsigned int minmag_filter){
+bool mesh::add_texture(Image img, unsigned int wrap_filter, unsigned int min, unsigned int mag){
   unsigned int texture;
   glCreateTextures(GL_TEXTURE_2D, 1, &texture);
   glBindTextureUnit(0, texture);
@@ -46,13 +48,56 @@ bool mesh::add_texture(Image img, unsigned int wrap_filter, unsigned int minmag_
 
   glTextureParameteri(texture, GL_TEXTURE_WRAP_S, wrap_filter );
   glTextureParameteri(texture, GL_TEXTURE_WRAP_T, wrap_filter );
-  glTextureParameteri(texture, GL_TEXTURE_MIN_FILTER, minmag_filter);
-  glTextureParameteri(texture, GL_TEXTURE_MAG_FILTER, minmag_filter);
+  glTextureParameteri(texture, GL_TEXTURE_MIN_FILTER, min);
+  glTextureParameteri(texture, GL_TEXTURE_MAG_FILTER, mag);
 
   glTextureStorage2D(texture, 1, GL_RGBA8, img.w, img.h);
   glTextureSubImage2D(texture, 0, 0, 0, img.w, img.h, GL_RGBA, GL_UNSIGNED_BYTE, img.data);
 
   textures.push_back(texture);
+  return true;
+}
+
+bool mesh::add_texture(
+    std::string_view filepath, unsigned int wrap_filter, unsigned int min, unsigned int mag
+) {
+  //Image img;
+  //Image_load(&img, filepath.data());
+
+  //unsigned int texture;
+  //glCreateTextures(GL_TEXTURE_2D, 1, &texture);
+  //glBindTextureUnit(0, texture);
+
+  //if(!texture)
+  //{
+  //  std::cerr << "MESH ERROR: failed to add texture\n"; 
+  //  return false;
+  //}
+
+  //glTextureParameteri(texture, GL_TEXTURE_WRAP_S, wrap_filter );
+  //glTextureParameteri(texture, GL_TEXTURE_WRAP_T, wrap_filter );
+  //glTextureParameteri(texture, GL_TEXTURE_MIN_FILTER, min);
+  //glTextureParameteri(texture, GL_TEXTURE_MAG_FILTER, mag);
+
+  //glTextureStorage2D(texture, 1, GL_RGBA8, img.w, img.h);
+  //glTextureSubImage2D(texture, 0, 0, 0, img.w, img.h, GL_RGBA, GL_UNSIGNED_BYTE, img.data);
+
+  unsigned int texture = create_texture_from_file(filepath, wrap_filter, min,mag);
+
+  if(texture)
+    textures.push_back(texture);
+  else
+    std::cerr << "MESH ERROR: failed to add texture\n"; 
+
+  return true;
+}
+
+bool mesh::add_texture(unsigned int texID)
+{
+  if(!texID)
+    return false;
+
+  textures.push_back(texID);
   return true;
 }
 
@@ -72,10 +117,36 @@ void mesh::draw(unsigned int mode, unsigned int shader_program){
 
   glBindVertexArray(vao);
 
-  if(ebo) {
-    glDrawElements(mode, ebo_count, GL_UNSIGNED_INT, NULL);
-  } else {
-    glDrawArrays(mode, 0, vbo_count);
-  }
+    if(ebo) {
+      glDrawElements(mode, ebo_count, GL_UNSIGNED_INT, NULL);
+    } else {
+      glDrawArrays(mode, 0, vbo_count);
+    }
 
+    //if(!textures.empty()) {
+    //  for(int i = 0; i < textures.size(); ++i) {
+    //    glBindTextureUnit(i, 0);
+    //  }
+    //}
+  
+  glBindVertexArray(0);
+  
+}
+
+void mesh::onClean()
+{
+  glDeleteVertexArrays(1, &vao);
+  glDeleteBuffers(1, &vbo);
+
+  if(ebo)
+    glDeleteBuffers(1, &ebo);
+
+  //removed due to adding a resource manager.
+  //glDeleteTextures(textures[textures.size() - 1], &textures[textures.size() - 1]);
+}
+
+void mesh::nuke()
+{
+  onClean();
+  clean();
 }

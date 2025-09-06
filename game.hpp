@@ -14,15 +14,16 @@ class game
     bool init(int w, int h, bool fullscreen, bool debug, bool vsync = true);
     void run();
     
-    bool onSetup();
-    void onUpdate();
-    void onRender();
-    void onShutDown();
-
     virtual bool setup() {return true;}
-    virtual void update(){};
+    virtual void update(float dt){};
     virtual void render(){};
     virtual void shutdown(){};
+
+  private:
+    bool onSetup();
+    void onUpdate(float dt);
+    void onRender();
+    void onShutDown();
 
   protected:
     GLFWwindow* window  = nullptr;
