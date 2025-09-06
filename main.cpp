@@ -23,6 +23,7 @@ struct vertex{
   float x, y, z;
   float r, g, b, a;
   float u, v;
+  float nx, ny, nz;
 };
 
 struct light_vertex{
@@ -44,14 +45,17 @@ void mymesh::setup()
   glEnableVertexArrayAttrib(vao, 0);
   glEnableVertexArrayAttrib(vao, 1);
   glEnableVertexArrayAttrib(vao, 2);
+  glEnableVertexArrayAttrib(vao, 3);
 
   glVertexArrayAttribFormat(vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
   glVertexArrayAttribFormat(vao, 1, 4, GL_FLOAT, GL_FALSE, offsetof(vertex, r));
   glVertexArrayAttribFormat(vao, 2, 2, GL_FLOAT, GL_FALSE, offsetof(vertex, u));
+  glVertexArrayAttribFormat(vao, 3, 3, GL_FLOAT, GL_FALSE, offsetof(vertex, nx));
 
   glVertexArrayAttribBinding(vao, 0, 0);
   glVertexArrayAttribBinding(vao, 1, 0);
   glVertexArrayAttribBinding(vao, 2, 0);
+  glVertexArrayAttribBinding(vao, 3, 0);
 
 }
 
@@ -110,47 +114,48 @@ bool mygame::setup()
   glfwSetCursorPosCallback(window, cursor_pos_callback);
 
   std::vector<float> vdata({
-    -0.5f, -0.5f, -0.5f,    1.f, 1.f, 1.f, 1.f,  0.0f, 0.0f,
-     0.5f, -0.5f, -0.5f,    1.f, 1.f, 1.f, 1.f,  1.0f, 0.0f,
-     0.5f,  0.5f, -0.5f,    1.f, 1.f, 1.f, 1.f,  1.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,    1.f, 1.f, 1.f, 1.f,  1.0f, 1.0f,
-    -0.5f,  0.5f, -0.5f,    1.f, 1.f, 1.f, 1.f,  0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,    1.f, 1.f, 1.f, 1.f,  0.0f, 0.0f,
-                        
-    -0.5f, -0.5f,  0.5f,    1.f, 1.f, 1.f, 1.f,  0.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,    1.f, 1.f, 1.f, 1.f,  1.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,    1.f, 1.f, 1.f, 1.f,  1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,    1.f, 1.f, 1.f, 1.f,  1.0f, 1.0f,
-    -0.5f,  0.5f,  0.5f,    1.f, 1.f, 1.f, 1.f,  0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,    1.f, 1.f, 1.f, 1.f,  0.0f, 0.0f,
-                       
-    -0.5f,  0.5f,  0.5f,    1.f, 1.f, 1.f, 1.f,  1.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f,    1.f, 1.f, 1.f, 1.f,  1.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,    1.f, 1.f, 1.f, 1.f,  0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,    1.f, 1.f, 1.f, 1.f,  0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,    1.f, 1.f, 1.f, 1.f,  0.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f,    1.f, 1.f, 1.f, 1.f,  1.0f, 0.0f,
-                      
-     0.5f,  0.5f,  0.5f,    1.f, 1.f, 1.f, 1.f,  1.0f, 0.0f,
-     0.5f,  0.5f, -0.5f,    1.f, 1.f, 1.f, 1.f,  1.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,    1.f, 1.f, 1.f, 1.f,  0.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,    1.f, 1.f, 1.f, 1.f,  0.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,    1.f, 1.f, 1.f, 1.f,  0.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,    1.f, 1.f, 1.f, 1.f,  1.0f, 0.0f,
-                     
-    -0.5f, -0.5f, -0.5f,    1.f, 1.f, 1.f, 1.f,  0.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,    1.f, 1.f, 1.f, 1.f,  1.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,    1.f, 1.f, 1.f, 1.f,  1.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,    1.f, 1.f, 1.f, 1.f,  1.0f, 0.0f,
-    -0.5f, -0.5f,  0.5f,    1.f, 1.f, 1.f, 1.f,  0.0f, 0.0f,
-    -0.5f, -0.5f, -0.5f,    1.f, 1.f, 1.f, 1.f,  0.0f, 1.0f,
-                    
-    -0.5f,  0.5f, -0.5f,    1.f, 1.f, 1.f, 1.f,  0.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,    1.f, 1.f, 1.f, 1.f,  1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,    1.f, 1.f, 1.f, 1.f,  1.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,    1.f, 1.f, 1.f, 1.f,  1.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f,    1.f, 1.f, 1.f, 1.f,  0.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f,    1.f, 1.f, 1.f, 1.f,  0.0f, 1.0f
+     //position             //color              //uv         //normals
+    -0.5f, -0.5f, -0.5f,    1.f, 1.f, 1.f, 1.f,  0.0f, 0.0f,  0.0f,  0.0f, -1.0f,    
+     0.5f, -0.5f, -0.5f,    1.f, 1.f, 1.f, 1.f,  1.0f, 0.0f,  0.0f,  0.0f, -1.0f,
+     0.5f,  0.5f, -0.5f,    1.f, 1.f, 1.f, 1.f,  1.0f, 1.0f,  0.0f,  0.0f, -1.0f,
+     0.5f,  0.5f, -0.5f,    1.f, 1.f, 1.f, 1.f,  1.0f, 1.0f,  0.0f,  0.0f, -1.0f,
+    -0.5f,  0.5f, -0.5f,    1.f, 1.f, 1.f, 1.f,  0.0f, 1.0f,  0.0f,  0.0f, -1.0f,
+    -0.5f, -0.5f, -0.5f,    1.f, 1.f, 1.f, 1.f,  0.0f, 0.0f,  0.0f,  0.0f, -1.0f,
+                                                                                 
+    -0.5f, -0.5f,  0.5f,    1.f, 1.f, 1.f, 1.f,  0.0f, 0.0f,  0.0f,  0.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,    1.f, 1.f, 1.f, 1.f,  1.0f, 0.0f,  0.0f,  0.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,    1.f, 1.f, 1.f, 1.f,  1.0f, 1.0f,  0.0f,  0.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,    1.f, 1.f, 1.f, 1.f,  1.0f, 1.0f,  0.0f,  0.0f, 1.0f,
+    -0.5f,  0.5f,  0.5f,    1.f, 1.f, 1.f, 1.f,  0.0f, 1.0f,  0.0f,  0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,    1.f, 1.f, 1.f, 1.f,  0.0f, 0.0f,  0.0f,  0.0f, 1.0f,
+                                                                                 
+    -0.5f,  0.5f,  0.5f,    1.f, 1.f, 1.f, 1.f,  1.0f, 0.0f,  1.0f,  0.0f,  0.0f,
+    -0.5f,  0.5f, -0.5f,    1.f, 1.f, 1.f, 1.f,  1.0f, 1.0f,  1.0f,  0.0f,  0.0f,
+    -0.5f, -0.5f, -0.5f,    1.f, 1.f, 1.f, 1.f,  0.0f, 1.0f,  1.0f,  0.0f,  0.0f,
+    -0.5f, -0.5f, -0.5f,    1.f, 1.f, 1.f, 1.f,  0.0f, 1.0f,  1.0f,  0.0f,  0.0f,
+    -0.5f, -0.5f,  0.5f,    1.f, 1.f, 1.f, 1.f,  0.0f, 0.0f,  1.0f,  0.0f,  0.0f,
+    -0.5f,  0.5f,  0.5f,    1.f, 1.f, 1.f, 1.f,  1.0f, 0.0f,  1.0f,  0.0f,  0.0f,
+                                                                                 
+     0.5f,  0.5f,  0.5f,    1.f, 1.f, 1.f, 1.f,  1.0f, 0.0f,  1.0f,  0.0f,  0.0f,
+     0.5f,  0.5f, -0.5f,    1.f, 1.f, 1.f, 1.f,  1.0f, 1.0f,  1.0f,  0.0f,  0.0f,
+     0.5f, -0.5f, -0.5f,    1.f, 1.f, 1.f, 1.f,  0.0f, 1.0f,  1.0f,  0.0f,  0.0f,
+     0.5f, -0.5f, -0.5f,    1.f, 1.f, 1.f, 1.f,  0.0f, 1.0f,  1.0f,  0.0f,  0.0f,
+     0.5f, -0.5f,  0.5f,    1.f, 1.f, 1.f, 1.f,  0.0f, 0.0f,  1.0f,  0.0f,  0.0f,
+     0.5f,  0.5f,  0.5f,    1.f, 1.f, 1.f, 1.f,  1.0f, 0.0f,  1.0f,  0.0f,  0.0f,
+                                                                                 
+    -0.5f, -0.5f, -0.5f,    1.f, 1.f, 1.f, 1.f,  0.0f, 1.0f,  0.0f, -1.0f,  0.0f,
+     0.5f, -0.5f, -0.5f,    1.f, 1.f, 1.f, 1.f,  1.0f, 1.0f,  0.0f, -1.0f,  0.0f,
+     0.5f, -0.5f,  0.5f,    1.f, 1.f, 1.f, 1.f,  1.0f, 0.0f,  0.0f, -1.0f,  0.0f,
+     0.5f, -0.5f,  0.5f,    1.f, 1.f, 1.f, 1.f,  1.0f, 0.0f,  0.0f, -1.0f,  0.0f,
+    -0.5f, -0.5f,  0.5f,    1.f, 1.f, 1.f, 1.f,  0.0f, 0.0f,  0.0f, -1.0f,  0.0f,
+    -0.5f, -0.5f, -0.5f,    1.f, 1.f, 1.f, 1.f,  0.0f, 1.0f,  0.0f, -1.0f,  0.0f,
+                                                                                 
+    -0.5f,  0.5f, -0.5f,    1.f, 1.f, 1.f, 1.f,  0.0f, 1.0f,  0.0f,  1.0f,  0.0f,
+     0.5f,  0.5f, -0.5f,    1.f, 1.f, 1.f, 1.f,  1.0f, 1.0f,  0.0f,  1.0f,  0.0f,
+     0.5f,  0.5f,  0.5f,    1.f, 1.f, 1.f, 1.f,  1.0f, 0.0f,  0.0f,  1.0f,  0.0f,
+     0.5f,  0.5f,  0.5f,    1.f, 1.f, 1.f, 1.f,  1.0f, 0.0f,  0.0f,  1.0f,  0.0f,
+    -0.5f,  0.5f,  0.5f,    1.f, 1.f, 1.f, 1.f,  0.0f, 0.0f,  0.0f,  1.0f,  0.0f,
+    -0.5f,  0.5f, -0.5f,    1.f, 1.f, 1.f, 1.f,  0.0f, 1.0f,  0.0f,  1.0f,  0.0f,
    });
 
   std::vector<float> light_vdata({
@@ -244,6 +249,7 @@ void mygame::update(float dt)
   cam.front.y += yoffset * dt * 0.04;
 
   glUseProgram(man.get_shader("cube"));
+  glUniform3f(glGetUniformLocation(man.get_shader("cube"), "lightPos"), 0, 0, 0);
   glUniformMatrix4fv(
       glGetUniformLocation(man.get_shader("cube"), "projection"), 1, GL_FALSE, glm::value_ptr(cam.projection)
   );
