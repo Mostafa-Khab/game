@@ -5,6 +5,7 @@ uniform mat4 view;
 uniform mat4 projection;
 
 uniform vec3 lightPos;
+uniform vec3 viewPos;
 
 in vec3 a_pos;
 in vec4 a_col;
@@ -17,6 +18,7 @@ out vec3 v_normal;
 
 out vec3 v_pos;
 out vec3 v_lightPos;
+out vec3 v_viewPos;
 
 void main()
 {
@@ -26,4 +28,5 @@ void main()
   v_normal    = vec3(projection * model * vec4(a_normal, 1.0));
   v_pos       = vec3(projection * model * vec4(a_pos, 1.0));//vec3(model * vec4(a_pos, 1.0));
   v_lightPos  = vec3(projection * model * vec4(lightPos, 1.0));
+  v_viewPos   = vec3(projection * model * vec4(viewPos, 1.0));
 }

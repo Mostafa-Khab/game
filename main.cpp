@@ -1,9 +1,9 @@
-#include "glm/trigonometric.hpp"
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 #include <glad/gl.h>
 
 #include <iostream>
+#include <cmath>
 
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
@@ -98,6 +98,7 @@ class mygame: public game
     double xlast = 0, ylast = 0;
 
     float fov = 45.f;
+    float lightColor[3] = {1, 1, 1};
 
     friend void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
     friend void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos);
@@ -249,7 +250,9 @@ void mygame::update(float dt)
   cam.front.y += yoffset * dt * 0.04;
 
   glUseProgram(man.get_shader("cube"));
-  glUniform3f(glGetUniformLocation(man.get_shader("cube"), "lightPos"), 0, 0, 0);
+  glUniform3f(glGetUniformLocation(man.get_shader("cube"), "lightPos"), 0, 1, 0);
+  glUniform3fv(glGetUniformLocation(man.get_shader("cube"), "viewPos"), 1, (const float*)&cam.pos);
+  glUniform3fv(glGetUniformLocation(man.get_shader("cube"), "lightColor"), 1, (const float*)&lightColor);
   glUniformMatrix4fv(
       glGetUniformLocation(man.get_shader("cube"), "projection"), 1, GL_FALSE, glm::value_ptr(cam.projection)
   );
@@ -258,6 +261,7 @@ void mygame::update(float dt)
   );
 
   glUseProgram(man.get_shader("light"));
+  glUniform3fv(glGetUniformLocation(man.get_shader("light"), "lightColor"), 1, (const float*)&lightColor);
   glUniformMatrix4fv(
       glGetUniformLocation(man.get_shader("light"), "projection"), 1, GL_FALSE, glm::value_ptr(cam.projection)
   );
@@ -267,6 +271,30 @@ void mygame::update(float dt)
 
   if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     glfwSetWindowShouldClose(window, true);
+
+  if(glfwGetKey(window, GLFW_KEY_DOWN))
+  {
+    if(glfwGetKey(window, GLFW_KEY_1))
+      lightColor[0] -= dt * 5;
+
+    if(glfwGetKey(window, GLFW_KEY_2))
+      lightColor[1] -= dt * 5;
+
+    if(glfwGetKey(window, GLFW_KEY_3))
+      lightColor[2] -= dt * 5;
+  }
+
+  if(glfwGetKey(window, GLFW_KEY_UP))
+  {
+    if(glfwGetKey(window, GLFW_KEY_1))
+      lightColor[0] += dt * 5;
+
+    if(glfwGetKey(window, GLFW_KEY_2))
+      lightColor[1] += dt * 5;
+
+    if(glfwGetKey(window, GLFW_KEY_3))
+      lightColor[2] += dt * 5;
+  }
 }
 
 void mygame::render() {
